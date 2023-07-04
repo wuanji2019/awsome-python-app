@@ -1,13 +1,13 @@
 #!/usr/bin/env pytho3
 # -*- coding: utf-8 -*-
-import time
-import uuid
+
+import time, uuid
 
 from www.orm import Model, StringField, BooleanField, FloatField, TextField
 
 
 def next_id():
-    return '%015%s000' % (int(time.time() * 1000), uuid.uuid4().hex)
+    return '%015d%s000' % (int(time.time() * 1000), uuid.uuid4().hex)
 
 class User(Model):
     __table__ = 'users'

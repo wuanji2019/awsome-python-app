@@ -43,7 +43,7 @@ def get_required_kw_args(fn):
             args.append(name)
     return tuple(args)
 
-def get_name_kw_args(fn):
+def get_named_kw_args(fn):
     args = []
     params = inspect.signature(fn).parameters
     for name, param in params.items():
@@ -83,7 +83,7 @@ class RequestHandler(object):
         self._has_request_arg = has_request_arg(fn)
         self._has_var_kw_arg = has_var_kw_arg(fn)
         self._has_named_kw_args = has_named_kw_args(fn)
-        self._named_kw_args = get_name_kw_args(fn)
+        self._named_kw_args = get_named_kw_args(fn)
         self._required_kw_args = get_required_kw_args(fn)
 
     async def __call__(self, request):
@@ -110,7 +110,7 @@ class RequestHandler(object):
                     for k, v in parse.parse_qs(qs, True).items():
                         kw[k] = v[0]
         if kw is None:
-            kw = dict(**request.math_info)
+            kw = dict(**request.match_info)
         else:
             if not self._has_var_kw_arg and self._named_kw_args:
                 # remove all unamed kw:
