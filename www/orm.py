@@ -1,8 +1,11 @@
-#!/usr/bin/env pytho3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import asyncio, logging
-import aiomysql
 
+__author__ = 'Michael Liao'
+
+import asyncio, logging
+
+import aiomysql
 
 def log(sql, args=()):
     logging.info('SQL: %s' % sql)
@@ -65,6 +68,7 @@ def create_args_string(num):
     return ', '.join(L)
 
 class Field(object):
+
     def __init__(self, name, column_type, primary_key, default):
         self.name = name
         self.column_type = column_type
@@ -75,22 +79,27 @@ class Field(object):
         return '<%s, %s:%s>' % (self.__class__.__name__, self.column_type, self.name)
 
 class StringField(Field):
-    def __init__(self, name=None, primary_key=False, default=None,ddl='varchar(100)'):
-        super().__init__(name, ddl,primary_key,default)
+
+    def __init__(self, name=None, primary_key=False, default=None, ddl='varchar(100)'):
+        super().__init__(name, ddl, primary_key, default)
 
 class BooleanField(Field):
+
     def __init__(self, name=None, default=False):
         super().__init__(name, 'boolean', False, default)
 
 class IntegerField(Field):
+
     def __init__(self, name=None, primary_key=False, default=0):
         super().__init__(name, 'bigint', primary_key, default)
 
 class FloatField(Field):
+
     def __init__(self, name=None, primary_key=False, default=0.0):
         super().__init__(name, 'real', primary_key, default)
 
 class TextField(Field):
+
     def __init__(self, name=None, default=None):
         super().__init__(name, 'text', False, default)
 
@@ -184,7 +193,6 @@ class Model(dict, metaclass=ModelMetaclass):
                 raise ValueError('Invalid limit value: %s' % str(limit))
         rs = yield from select(' '.join(sql), args)
         return [cls(**r) for r in rs]
-
 
     @classmethod
     @asyncio.coroutine

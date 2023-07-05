@@ -1,5 +1,7 @@
-#!/usr/bin/env pytho3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
+__author__ = 'Michael Liao'
 
 import asyncio, os, inspect, logging, functools
 
@@ -11,7 +13,7 @@ from apis import APIError
 
 def get(path):
     '''
-     Define decorator @get('/path')
+    Define decorator @get('/path')
     '''
     def decorator(func):
         @functools.wraps(func)
@@ -28,10 +30,10 @@ def post(path):
     '''
     def decorator(func):
         @functools.wraps(func)
-        def wrapper(*args,**kw):
-            return func(*args,**kw)
+        def wrapper(*args, **kw):
+            return func(*args, **kw)
         wrapper.__method__ = 'POST'
-        wrapper.__route = path
+        wrapper.__route__ = path
         return wrapper
     return decorator
 
@@ -86,7 +88,8 @@ class RequestHandler(object):
         self._named_kw_args = get_named_kw_args(fn)
         self._required_kw_args = get_required_kw_args(fn)
 
-    async def __call__(self, request):
+    @asyncio.coroutine
+    def __call__(self, request):
         kw = None
         if self._has_var_kw_arg or self._has_named_kw_args or self._required_kw_args:
             if request.method == 'POST':
@@ -94,12 +97,12 @@ class RequestHandler(object):
                     return web.HTTPBadRequest('Missing Content-Type.')
                 ct = request.content_type.lower()
                 if ct.startswith('application/json'):
-                    params = await request.json()
-                    if not isinstance(params,dict):
+                    params = yield from request.json()
+                    if not isinstance(params, dict):
                         return web.HTTPBadRequest('JSON body must be object.')
                     kw = params
                 elif ct.startswith('application/x-www-form-urlencoded') or ct.startswith('multipart/form-data'):
-                    params = await request.post()
+                    params = yield from request.post()
                     kw = dict(**params)
                 else:
                     return web.HTTPBadRequest('Unsupported Content-Type: %s' % request.content_type)
@@ -120,7 +123,7 @@ class RequestHandler(object):
                         copy[name] = kw[name]
                 kw = copy
             # check named arg:
-            for k,v in request.match_info.items():
+            for k, v in request.match_info.items():
                 if k in kw:
                     logging.warning('Duplicate arg name in named arg and kw args: %s' % k)
                 kw[k] = v
@@ -133,7 +136,7 @@ class RequestHandler(object):
                     return web.HTTPBadRequest('Missing argument: %s' % name)
         logging.info('call with args: %s' % str(kw))
         try:
-            r = await self._func(**kw)
+            r = yield from self._func(**kw)
             return r
         except APIError as e:
             return dict(error=e.error, data=e.data, message=e.message)
